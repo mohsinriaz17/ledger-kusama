@@ -44,27 +44,27 @@ $(info ************ FULL PARSER ENABLED ************)
 endif
 
 ifndef COIN
-COIN=KSM
+COIN=CAPS
 endif
 
 include $(CURDIR)/Makefile.version
 
 $(info COIN  = [$(COIN)])
 
-ifeq ($(COIN),KSM)
+ifeq ($(COIN),CAPS)
 # Main app configuration
 DEFINES += APP_STANDARD
 ifneq ($(TARGET_NAME),TARGET_NANOS)
 DEFINES += SUBSTRATE_PARSER_FULL
 endif
-APPNAME = "Kusama"
-APPPATH = "44'/434'" --path "44'/354'"
+APPNAME = "Ternoa"
+APPPATH = "44'/995'"
 
-else ifeq ($(COIN),KSM_XL)
+else ifeq ($(COIN),CAPS_XL)
 # XL app configuration
 DEFINES += APP_STANDARD SUBSTRATE_PARSER_FULL
-APPNAME = "Kusama XL"
-APPPATH = "44'/434'" --path "44'/354'"
+APPNAME = "Ternoa XL"
+APPPATH = "44'/995'"
 
 else
 define error_message
@@ -98,11 +98,8 @@ APP_SOURCE_PATH += $(CURDIR)/rust/include
 rust:
 	cd rust && CARGO_HOME="$(CURDIR)/rust/.cargo" cargo build --target thumbv6m-none-eabi --release
 
-# Force rust dependency before c compilation in parallel mode (-j option).
-.DEFAULT_GOAL := build_with_rust
-.PHONY: build_with_rust
-build_with_rust: rust
-	$(MAKE) all
+# Before linking, we need to be sure rust lib is there
+bin/app.elf: rust
 
 .PHONY: rust_clean
 rust_clean:
@@ -121,9 +118,9 @@ dep/%.d: %.c Makefile
 .PHONY: listvariants
 listvariants:
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-	@echo VARIANTS COIN KSM KSM_XL
+	@echo VARIANTS COIN CAPS CAPS_XL
 else
-	@echo VARIANTS COIN KSM
+	@echo VARIANTS COIN CAPS
 endif
 
 .PHONY: version

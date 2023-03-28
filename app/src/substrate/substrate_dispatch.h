@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  (c) 2019 - 2023 Zondax AG
+ *  (c) 2019 - 2022 Zondax GmbH
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,6 +13,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  ********************************************************************************/
+/** ******************************************************************************
+ *  (c) 2023 CapsuleCorp
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ******************************************************************************* */
 #pragma once
 
 #ifdef __cplusplus
@@ -21,8 +36,7 @@ extern "C" {
 
 #include "parser_common.h"
 #include "stdbool.h"
-#include "substrate_dispatch_V19.h"
-#include "substrate_dispatch_V20.h"
+#include "substrate_dispatch_V1.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -33,11 +47,8 @@ extern "C" {
     {                                              \
         switch (txVersion) {                       \
                                                    \
-        case 20:                                   \
-            return PD_CALL_##CALL##_V20;           \
-                                                   \
-        case 19:                                   \
-            return PD_CALL_##CALL##_V19;           \
+        case 1:                                    \
+            return PD_CALL_##CALL##_V1;            \
                                                    \
         default:                                   \
             return 0;                              \

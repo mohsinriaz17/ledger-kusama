@@ -19,32 +19,13 @@
 extern "C" {
 #endif
 
-#include "substrate_types.h"
+#include "parser_common.h"
+#include "substrate_methods_V1.h"
+#include "substrate_types_V1.h"
 #include <stddef.h>
 #include <stdint.h>
 
 // Versioned types functions for tx version V19
-
-typedef struct {
-    uint8_t value;
-    union {
-        pd_VecMultiAssetV0_t vecMultiassetV0;
-        pd_VecMultiAssetV1_t vecMultiassetV1;
-    };
-} pd_BoxVersionedMultiAssets_V19_t;
-
-typedef struct {
-    uint8_t value;
-    union {
-        pd_MultiLocationV0_t multilocationV0;
-        pd_MultiLocationV1_t multilocationV1;
-    };
-} pd_BoxVersionedMultiLocation_V19_t;
-
-typedef struct {
-    uint8_t value;
-    pd_Compactu64_t limited;
-} pd_WeightLimit_V19_t;
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  (c) 2019 - 2023 Zondax AG
+ *  (c) 2019 - 2022 Zondax GmbH
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,19 +13,34 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  ********************************************************************************/
+/** ******************************************************************************
+ *  (c) 2023 CapsuleCorp
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ******************************************************************************* */
 #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define COIN_ADDR_TYPE 2
-#define CLA 0x99
+#define COIN_ADDR_TYPE 42
+#define CLA 0xb5
 
 #define HDPATH_LEN_DEFAULT 5
 #define HDPATH_0_DEFAULT (0x80000000 | 0x2c)
-#define HDPATH_1_DEFAULT (0x80000000 | 0x1b2)
-#define HDPATH_1_RECOVERY (0x80000000 | 0x162)
+#define HDPATH_1_DEFAULT (0x80000000 | 0x3e3)
+#define HDPATH_1_RECOVERY (0x80000000 | 0x3e3)
 
 #define HDPATH_2_DEFAULT (0x80000000u | 0u)
 #define HDPATH_3_DEFAULT (0u)
@@ -53,22 +68,22 @@ typedef enum {
 #define SUPPORTED_TX_VERSION_CURRENT LEDGER_MAJOR_VERSION
 #define SUPPORTED_TX_VERSION_PREVIOUS (LEDGER_MAJOR_VERSION - 1)
 #define SUPPORTED_SPEC_VERSION (LEDGER_MINOR_VERSION + 0)
-#define SUPPORTED_MINIMUM_SPEC_VERSION 9000
+#define SUPPORTED_MINIMUM_SPEC_VERSION 1
 
-#define COIN_AMOUNT_DECIMAL_PLACES 12
+#define COIN_AMOUNT_DECIMAL_PLACES 18
 
-#define COIN_GENESIS_HASH "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe"
-#define COIN_NAME "Kusama"
-#define COIN_TICKER "KSM "
+#define COIN_GENESIS_HASH "6859c81ca95ef624c9dfe4dc6e3381c33e5d6509e35e147092bfbc780f777c4e"
+#define COIN_NAME "Ternoa"
+#define COIN_TICKER "CAPS "
 
 #define COIN_SECRET_REQUIRED_CLICKS 10
 
-#define MENU_MAIN_APP_LINE1 "Kusama"
+#define MENU_MAIN_APP_LINE1 "Ternoa"
 #define MENU_MAIN_APP_LINE2 "Ready"
-#define MENU_MAIN_APP_LINE2_SECRET "KSM RECOVERY"
-#define APPVERSION_LINE1 "Kusama"
+#define MENU_MAIN_APP_LINE2_SECRET "CAPS RECOVERY"
+#define APPVERSION_LINE1 "Ternoa"
 #define APPVERSION_LINE2 "v" APPVERSION
-
+#define DEVELOPER "CapsuleCorp"
 #ifdef __cplusplus
 }
 #endif
