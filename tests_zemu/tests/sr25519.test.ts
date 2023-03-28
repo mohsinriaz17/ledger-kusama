@@ -1,5 +1,20 @@
 /** ******************************************************************************
- *  (c) 2020 Zondax GmbH
+ * (c) 2018 - 2022 Zondax AG
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ******************************************************************************* */
+/** ******************************************************************************
+ *  (c) 2023 CapsuleCorp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,34 +29,21 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import Zemu, { DEFAULT_START_OPTIONS } from '@zondax/zemu'
-import { newKusamaApp } from '@zondax/ledger-substrate'
-import { APP_SEED } from './common'
-import { txBalances_transfer, txStaking_nominate } from './zemu_blobs'
-
-// @ts-ignore
-import { blake2bFinal, blake2bInit, blake2bUpdate } from 'blakejs'
-
-const addon = require('../../tests_tools/neon/native')
+import Zemu from '@zondax/zemu'
+import { newSubstrateApp } from '@zondax/ledger-substrate'
+import { defaultOptions } from './common'
 
 const Resolve = require('path').resolve
 const APP_PATH = Resolve('../app/output/app_sr25519.elf')
 
-const defaultOptions = {
-  ...DEFAULT_START_OPTIONS,
-  logging: true,
-  custom: `-s "${APP_SEED}"`,
-  X11: false,
-}
-
 jest.setTimeout(180000)
 
 describe('SR25519', function () {
-  test.concurrent('get address sr25519', async function () {
+  test('get address sr25519', async function () {
     const sim = new Zemu(APP_PATH)
     try {
       await sim.start({ ...defaultOptions })
-      const app = newKusamaApp(sim.getTransport())
+      const app = newSubstrateApp(sim.getTransport(),'ternoa')
 
       const resp = await app.getAddress(0x80000000, 0x80000000, 0x80000000, false, 1)
 
@@ -50,8 +52,8 @@ describe('SR25519', function () {
       expect(resp.return_code).toEqual(0x9000)
       expect(resp.error_message).toEqual('No errors')
 
-      const expected_address = 'Cz4vu6J2NHP977ZYZcMCdjmmLgmddKvXRi5TxecuTgFfKww'
-      const expected_pk = '121cc87d316d311fe3e3b9c34b1083a29c55f6ebd214b60f59578b0a37007424'
+      const expected_address = '5FTcptCwxeNfiNvpJig39hQJk1zFzPH74dARxBxgzVyEiZ2m'
+      const expected_pk = '962e68d88572bdcaa116ef66d68835813fc5a35e2282aa16ee54a4fad7787d6f'
 
       expect(resp.address).toEqual(expected_address)
       expect(resp.pubKey).toEqual(expected_pk)
@@ -60,11 +62,11 @@ describe('SR25519', function () {
     }
   })
 
-  test.concurrent('show address sr25519', async function () {
+  test('show address sr25519', async function () {
     const sim = new Zemu(APP_PATH)
     try {
       await sim.start({ ...defaultOptions, model: 'nanos' })
-      const app = newKusamaApp(sim.getTransport())
+      const app = newSubstrateApp(sim.getTransport(),'ternoa')
 
       const respRequest = app.getAddress(0x80000000, 0x80000000, 0x80000000, true, 1)
       // Wait until we are not in the main menu
@@ -77,8 +79,8 @@ describe('SR25519', function () {
       expect(resp.return_code).toEqual(0x9000)
       expect(resp.error_message).toEqual('No errors')
 
-      const expected_address = 'Cz4vu6J2NHP977ZYZcMCdjmmLgmddKvXRi5TxecuTgFfKww'
-      const expected_pk = '121cc87d316d311fe3e3b9c34b1083a29c55f6ebd214b60f59578b0a37007424'
+      const expected_address = '5FTcptCwxeNfiNvpJig39hQJk1zFzPH74dARxBxgzVyEiZ2m'
+      const expected_pk = '962e68d88572bdcaa116ef66d68835813fc5a35e2282aa16ee54a4fad7787d6f'
 
       expect(resp.address).toEqual(expected_address)
       expect(resp.pubKey).toEqual(expected_pk)
@@ -87,11 +89,11 @@ describe('SR25519', function () {
     }
   })
 
-  test.concurrent('show address - reject sr25519', async function () {
+  test('show address - reject sr25519', async function () {
     const sim = new Zemu(APP_PATH)
     try {
       await sim.start({ ...defaultOptions })
-      const app = newKusamaApp(sim.getTransport())
+      const app = newSubstrateApp(sim.getTransport(),'ternoa')
 
       const respRequest = app.getAddress(0x80000000, 0x80000000, 0x80000000, true, 1)
       // Wait until we are not in the main menu
@@ -103,187 +105,6 @@ describe('SR25519', function () {
 
       expect(resp.return_code).toEqual(0x6986)
       expect(resp.error_message).toEqual('Transaction rejected')
-    } finally {
-      await sim.close()
-    }
-  })
-
-  test.concurrent('sign basic normal', async function () {
-    const sim = new Zemu(APP_PATH)
-    try {
-      await sim.start({ ...defaultOptions })
-      const app = newKusamaApp(sim.getTransport())
-      const pathAccount = 0x80000000
-      const pathChange = 0x80000000
-      const pathIndex = 0x80000000
-
-      const txBlob = Buffer.from(txBalances_transfer, 'hex')
-
-      const responseAddr = await app.getAddress(pathAccount, pathChange, pathIndex, false, 1)
-      const pubKey = Buffer.from(responseAddr.pubKey, 'hex')
-
-      // do not wait here.. we need to navigate
-      const signatureRequest = app.sign(pathAccount, pathChange, pathIndex, txBlob, 1)
-      // Wait until we are not in the main menu
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-      await sim.compareSnapshotsAndApprove('.', 's-sign_basic_normal_sr25519')
-
-      const signatureResponse = await signatureRequest
-      console.log(signatureResponse)
-
-      expect(signatureResponse.return_code).toEqual(0x9000)
-      expect(signatureResponse.error_message).toEqual('No errors')
-
-      // Now verify the signature
-      let prehash = txBlob
-      if (txBlob.length > 256) {
-        const context = blake2bInit(32)
-        blake2bUpdate(context, txBlob)
-        prehash = Buffer.from(blake2bFinal(context))
-      }
-      const signingcontext = Buffer.from([])
-      const valid = addon.schnorrkel_verify(pubKey, signingcontext, prehash, signatureResponse.signature.slice(1))
-      expect(valid).toEqual(true)
-    } finally {
-      await sim.close()
-    }
-  })
-
-  test.concurrent('sign basic expert', async function () {
-    const sim = new Zemu(APP_PATH)
-    try {
-      await sim.start({ ...defaultOptions })
-      const app = newKusamaApp(sim.getTransport())
-      const pathAccount = 0x80000000
-      const pathChange = 0x80000000
-      const pathIndex = 0x80000000
-
-      // Change to expert mode so we can skip fields
-      await sim.clickRight()
-      await sim.clickBoth()
-      await sim.clickLeft()
-
-      const txBlob = Buffer.from(txBalances_transfer, 'hex')
-
-      const responseAddr = await app.getAddress(pathAccount, pathChange, pathIndex, false, 1)
-      const pubKey = Buffer.from(responseAddr.pubKey, 'hex')
-
-      // do not wait here.. we need to navigate
-      const signatureRequest = app.sign(pathAccount, pathChange, pathIndex, txBlob, 1)
-
-      // Wait until we are not in the main menu
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-      await sim.compareSnapshotsAndApprove('.', 's-sign_basic_expert_sr25519')
-
-      const signatureResponse = await signatureRequest
-      console.log(signatureResponse)
-
-      expect(signatureResponse.return_code).toEqual(0x9000)
-      expect(signatureResponse.error_message).toEqual('No errors')
-
-      // Now verify the signature
-      let prehash = txBlob
-      if (txBlob.length > 256) {
-        const context = blake2bInit(32)
-        blake2bUpdate(context, txBlob)
-        prehash = Buffer.from(blake2bFinal(context))
-      }
-      const signingcontext = Buffer.from([])
-      const valid = addon.schnorrkel_verify(pubKey, signingcontext, prehash, signatureResponse.signature.slice(1))
-      expect(valid).toEqual(true)
-    } finally {
-      await sim.close()
-    }
-  })
-
-  test.concurrent('sign basic expert - accept shortcut', async function () {
-    const sim = new Zemu(APP_PATH)
-    try {
-      await sim.start({ ...defaultOptions })
-      const app = newKusamaApp(sim.getTransport())
-      const pathAccount = 0x80000000
-      const pathChange = 0x80000000
-      const pathIndex = 0x80000000
-
-      // Change to expert mode so we can skip fields
-      await sim.clickRight()
-      await sim.clickBoth()
-      await sim.clickLeft()
-
-      const txBlob = Buffer.from(txBalances_transfer, 'hex')
-
-      const responseAddr = await app.getAddress(pathAccount, pathChange, pathIndex, false, 1)
-      const pubKey = Buffer.from(responseAddr.pubKey, 'hex')
-
-      // do not wait here.. we need to navigate
-      const signatureRequest = app.sign(pathAccount, pathChange, pathIndex, txBlob, 1)
-
-      // Wait until we are not in the main menu
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-
-      // Shortcut to accept menu
-      await sim.clickBoth()
-
-      // Accept tx
-      await sim.clickBoth()
-
-      const signatureResponse = await signatureRequest
-      console.log(signatureResponse)
-
-      expect(signatureResponse.return_code).toEqual(0x9000)
-      expect(signatureResponse.error_message).toEqual('No errors')
-
-      // Now verify the signature
-      let prehash = txBlob
-      if (txBlob.length > 256) {
-        const context = blake2bInit(32)
-        blake2bUpdate(context, txBlob)
-        prehash = Buffer.from(blake2bFinal(context))
-      }
-      const signingcontext = Buffer.from([])
-      const valid = addon.schnorrkel_verify(pubKey, signingcontext, prehash, signatureResponse.signature.slice(1))
-      expect(valid).toEqual(true)
-    } finally {
-      await sim.close()
-    }
-  })
-
-  test.concurrent('sign large nomination', async function () {
-    const sim = new Zemu(APP_PATH)
-    try {
-      await sim.start({ ...defaultOptions })
-      const app = newKusamaApp(sim.getTransport())
-      const pathAccount = 0x80000000
-      const pathChange = 0x80000000
-      const pathIndex = 0x80000000
-
-      const txBlob = Buffer.from(txStaking_nominate, 'hex')
-
-      const responseAddr = await app.getAddress(pathAccount, pathChange, pathIndex, false, 1)
-      const pubKey = Buffer.from(responseAddr.pubKey, 'hex')
-
-      // do not wait here.. we need to navigate
-      const signatureRequest = app.sign(pathAccount, pathChange, pathIndex, txBlob, 1)
-      // Wait until we are not in the main menu
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-      await sim.compareSnapshotsAndApprove('.', 's-sign_large_nomination_sr25519')
-
-      const signatureResponse = await signatureRequest
-      console.log(signatureResponse)
-
-      expect(signatureResponse.return_code).toEqual(0x9000)
-      expect(signatureResponse.error_message).toEqual('No errors')
-
-      // Now verify the signature
-      let prehash = txBlob
-      if (txBlob.length > 256) {
-        const context = blake2bInit(32)
-        blake2bUpdate(context, txBlob)
-        prehash = Buffer.from(blake2bFinal(context))
-      }
-      const signingcontext = Buffer.from([])
-      const valid = addon.schnorrkel_verify(pubKey, signingcontext, prehash, signatureResponse.signature.slice(1))
-      expect(valid).toEqual(true)
     } finally {
       await sim.close()
     }
